@@ -1,14 +1,14 @@
 package category
 
-import org.scalacheck.{Arbitrary, Gen, Properties}
+import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop.forAll
 
 object IsomorphicProperties extends Properties("Isomorphism") {
-
   import Isomorphism._
   import Isomorphism.syntax._
 
   type EitherUnit[A] = Either[Unit, A]
+
   implicit def evidence[A] = new Isomorphism[EitherUnit[A], Option[A]] {
     def a2b = {
       case Left(_) => None
@@ -32,7 +32,6 @@ object IsomorphicProperties extends Properties("Isomorphism") {
 
   val selfIso = implicitly[String <=> String]
   property("isomorphism with self") = arrowIsIdentity(selfIso.a2b)
-
 
   property("reversibility") = forAll { (value: Either[Unit, String]) =>
     implicit val howcouldthisbeautomatic = reverse(evidence[String])
