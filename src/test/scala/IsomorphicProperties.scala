@@ -7,9 +7,7 @@ object IsomorphicProperties extends Properties("Isomorphism") {
   import Isomorphism._
   import Isomorphism.syntax._
 
-  type EitherUnit[A] = Either[Unit, A]
-
-  implicit def evidence[A] = new Isomorphism[EitherUnit[A], Option[A]] {
+  implicit def evidence[A] = new Isomorphism[Either[Unit, A], Option[A]] {
     def a2b = {
       case Left(_) => None
       case Right(a) => Some(a)
