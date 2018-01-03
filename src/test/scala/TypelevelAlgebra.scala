@@ -7,6 +7,9 @@ import Coproduct._
 trait ProductGenerators {
   import Arbitrary.arbitrary
 
+  sealed trait Void
+  implicit val arbitraryVoid: Arbitrary[Void] = Arbitrary(Gen.fail)
+
   implicit def genProduct[A : Arbitrary, B : Arbitrary]: Gen[A * B] = for {
     a <- arbitrary[A]
     b <- arbitrary[B]
@@ -43,13 +46,13 @@ object TypelevelAlgebra extends Properties("TypelevelAlgebra") with IsomorphicPr
   proveTypesAreIsoMorphic[String * Unit, String]
 
   // a + 0 = a
-  // implicit def unitOfSum[A] = new Isomorphism[A + Nothing, A] {
-  //   def a2b = {
-  //     case One(a) => a
-  //     case _ => throw new IllegalStateException("The world has just blown up, there is an instance of Nothing")
-  //   }
-  //   def b2a = One(_)
-  // }
+  implicit def unitOfSum[A] = new Isomorphism[A + Void, A] {
+    def a2b = {
+      case One(a) => a
+      case _ => throw new IllegalStateException("The world has just blown up, there is an instance of Void")
+    }
+    def b2a = One(_)
+  }
 
-  // proveTypesAreIsoMorphic[String + Nothing, String]
+  proveTypesAreIsoMorphic[String + Void, String]
 }
