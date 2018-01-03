@@ -1,7 +1,6 @@
 package category
 
 import org.scalacheck.{Arbitrary, Gen, Properties}
-import org.scalacheck.Prop.forAll
 import Product._
 import Coproduct._
 
