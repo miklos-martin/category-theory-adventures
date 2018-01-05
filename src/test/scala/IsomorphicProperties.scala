@@ -6,13 +6,7 @@ import Isomorphism._
 
 import scala.reflect.runtime.universe._
 
-trait IsomorphicProperties { self: Properties =>
-  def arrowsEqual[A : Arbitrary, B](f: A => B, g: A => B) = forAll { a: A =>
-    f(a) == g(a)
-  }
-
-  def arrowIsIdentity[A : Arbitrary](f: A => A) = arrowsEqual[A, A](f, identity)
-
+trait IsomorphicProperties extends ArrowProperties { self: Properties =>
   def proveTypesAreIsoMorphic[A : Arbitrary : TypeTag, B : TypeTag](implicit ev: A <=> B) = {
     property(s"isomorphism roundtrip == identity :: ${typeTag[A].tpe} <=> ${typeTag[B].tpe}") = arrowIsIdentity(ev.a2b andThen ev.b2a)
   }

@@ -13,11 +13,14 @@ lazy val root = (project in file(".")).
       "-deprecation",
       "-encoding", "UTF-8",
       "-feature",
+      "-language:higherKinds",
       "-language:implicitConversions",
       "-Ywarn-dead-code",
       "-Xfatal-warnings",
       "-Xlint"
     ),
+
+    addCompilerPlugin(kindProjector),
 
     libraryDependencies ++= Seq(
       scalaReflect % scalaVersion.value % Test,
