@@ -10,13 +10,13 @@ object Product {
 }
 
 sealed trait Coproduct[A, B]
-final case class Left[A, B](a: A) extends Coproduct[A, B]
-final case class Right[A, B](b: B) extends Coproduct[A, B]
+final case class CLeft[A, B](a: A) extends Coproduct[A, B]
+final case class CRight[A, B](b: B) extends Coproduct[A, B]
 
 object Coproduct {
   type +[A, B] = Coproduct[A, B]
 
-  def injectLeft[A, B]: A => Coproduct[A, B] = Left(_)
-  def injectRight[A, B]: B => Coproduct[A, B] = Right(_)
+  def injectLeft[A, B]: A => Coproduct[A, B] = CLeft(_)
+  def injectRight[A, B]: B => Coproduct[A, B] = CRight(_)
 }
 

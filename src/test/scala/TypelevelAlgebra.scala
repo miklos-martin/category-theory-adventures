@@ -20,8 +20,8 @@ trait ProductGenerators {
   } yield Product(a, b)
   implicit def arbitraryProduct[A : Arbitrary, B : Arbitrary] = Arbitrary(genProduct[A, B])
 
-  def left[A : Arbitrary, B]: Gen[Left[A, B]] = for (a <- arbitrary[A]) yield Left(a)
-  def right[A, B : Arbitrary]: Gen[Right[A, B]] = for (b <- arbitrary[B]) yield Right(b)
+  def left[A : Arbitrary, B]: Gen[CLeft[A, B]] = for (a <- arbitrary[A]) yield CLeft(a)
+  def right[A, B : Arbitrary]: Gen[CRight[A, B]] = for (b <- arbitrary[B]) yield CRight(b)
   implicit def arbitrarySum[A : Arbitrary, B : Arbitrary]: Arbitrary[A + B] = Arbitrary(Gen.oneOf(left[A, B], right[A, B]))
 }
 
@@ -29,13 +29,13 @@ object TypelevelAlgebra extends Properties("TypelevelAlgebra") with IsomorphicPr
   // a * (b + c) = a * b + a * c
   implicit def prod_vs_sum[A, B, C] = new Isomorphism[A * (B + C), (A * B) + (A * C)] {
     def a2b = {
-      case Product(a, Left(b)) => injectLeft(Product(a, b))
-      case Product(a, Right(c)) => injectRight(Product(a, c))
+      case Product(a, CLeft(b)) => injectLeft(Product(a, b))
+      case Product(a, CRight(c)) => injectRight(Product(a, c))
     }
 
     def b2a = {
-      case Left(Product(a, b)) => Product(a, injectLeft(b))
-      case Right(Product(a, c)) => Product(a, injectRight(c))
+      case CLeft(Product(a, b)) => Product(a, injectLeft(b))
+      case CRight(Product(a, c)) => Product(a, injectRight(c))
     }
   }
 
@@ -52,7 +52,7 @@ object TypelevelAlgebra extends Properties("TypelevelAlgebra") with IsomorphicPr
   // a + 0 = a
   implicit def unitOfSum[A] = new Isomorphism[A + `0`, A] {
     def a2b = {
-      case Left(a) => a
+      case CLeft(a) => a
       case _ => throw new IllegalStateException("The world has just blown up, there is an instance of `0`")
     }
     def b2a = injectLeft
@@ -63,8 +63,8 @@ object TypelevelAlgebra extends Properties("TypelevelAlgebra") with IsomorphicPr
   // a + a = 2 * a
   implicit def `a+a=2*a`[A] = new Isomorphism[A + A, `2` * A] {
     def a2b = {
-      case Left(a) => Product(true, a)
-      case Right(a) => Product(false, a)
+      case CLeft(a) => Product(true, a)
+      case CRight(a) => Product(false, a)
     }
 
     def b2a = {
