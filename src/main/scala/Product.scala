@@ -1,22 +1,24 @@
 package category
 
-final case class Product[A, B](fst: A, snd: B)
-
 object Product {
-  type *[A, B] = Product[A, B]
+  type *[A, B] = (A, B)
 
-  def projectFst[A]: Product[A, _] => A = _.fst
-  def projectSnd[B]: Product[_, B] => B = _.snd
+  def projectFst[A]: A * _ => A = _._1
+  def projectSnd[B]: _ * B => B = _._2
+
+  def swap[A, B]: A * B => B * A = {
+    case (a, b) => (b, a)
+  }
 }
-
-sealed trait Coproduct[A, B]
-final case class CLeft[A, B](a: A) extends Coproduct[A, B]
-final case class CRight[A, B](b: B) extends Coproduct[A, B]
 
 object Coproduct {
-  type +[A, B] = Coproduct[A, B]
+  type +[A, B] = Either[A, B]
 
-  def injectLeft[A, B]: A => Coproduct[A, B] = CLeft(_)
-  def injectRight[A, B]: B => Coproduct[A, B] = CRight(_)
+  def injectLeft[A, B]: A => A + B = Left(_)
+  def injectRight[A, B]: B => A + B = Right(_)
+
+  def swap[A, B]: A + B => B + A = {
+    case Left(a) => Right(a)
+    case Right(b) => Left(b)
+  }
 }
-
