@@ -7,7 +7,7 @@ import Isomorphism._
 import scala.reflect.runtime.universe._
 
 trait IsomorphicProperties extends ArrowProperties { self: Properties =>
-  def proveTypesAreIsoMorphic[A : Arbitrary : TypeTag, B : TypeTag](implicit ev: A <=> B) = {
+  def proveTypesAreIsoMorphic[A : Arbitrary : TypeTag : Eq, B : TypeTag](implicit ev: A <=> B) = {
     property(s"isomorphism roundtrip == identity :: ${typeTag[A].tpe} <=> ${typeTag[B].tpe}") = arrowIsIdentity(ev.a2b andThen ev.b2a)
   }
 }

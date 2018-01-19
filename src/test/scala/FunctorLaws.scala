@@ -1,10 +1,20 @@
 package category
 
-import org.scalacheck.Properties
-import org.scalacheck.Prop.forAll
+import org.scalacheck.{Arbitrary, Properties}
 
-object FunctorLaws extends Properties("Functor") with ArrowProperties {
+trait FunctorLaws extends ArrowProperties { self: Properties =>
+  def proveFunctorLaws[F[_] : Functor](implicit ev: Arbitrary[F[String]], evEqString: Eq[F[String]], evEqBoolean: Eq[F[Boolean]]) = {
+    def fmap[A, B](f: A => B) = Functor[F].fmap(f)
 
+    property("preserves id") = arrowIsIdentity(fmap[String, String](identity))
+
+    val f: Int => Boolean = _ > 5
+    val g: String => Int = _.length
+    property("preserves composition") = arrowsEqual(fmap(f compose g), fmap(f) compose fmap(g))
+  }
+}
+
+object OptionFunctor extends Properties("Functor for Option") with FunctorLaws {
   implicit val optionInstance = new Functor[Option] {
     def fmap[A, B](f: A => B): Option[A] => Option[B] = {
       case None => None
@@ -12,32 +22,28 @@ object FunctorLaws extends Properties("Functor") with ArrowProperties {
     }
   }
 
-  def fmap[A, B](f: A => B) = Functor[Option].fmap(f)
-
-  property("preserves id") = arrowIsIdentity(fmap[String, String](identity))
-
-  val f: Int => Boolean = _ > 5
-  val g: String => Int = _.length
-  property("preserves composition") = arrowsEqual(fmap(f compose g), fmap(f) compose fmap(g))
+  proveFunctorLaws[Option]
 }
 
-object ReaderExcercise extends Properties("Reader") {
-
+object ReaderExcercise extends Properties("Reader Functor") with FunctorLaws {
   implicit def reader[T] = new Functor[T => ?] {
     def fmap[A, B](f: A => B): (T => A) => (T => B) = f compose _
   }
 
-  property("preserves id") = forAll { (f: String => Int, s: String) =>
-    val mappedF = Functor[String => ?].fmap[Int, Int](identity)(f)
-    f(s) == mappedF(s)
+  proveFunctorLaws[String => ?]
+}
+
+object ConstExcercise extends Properties("Const functor") with FunctorLaws {
+  case class Const[C, B](c: C)
+
+  implicit def functor[C] = new Functor[Const[C, ?]] {
+    def fmap[A, B](f: A => B) = {
+      case Const(c) => Const(c)
+    }
   }
 
-  property("preserves composition") = forAll { (a: String => String, f: Int => Boolean, g: String => Int, s: String) =>
-    def fmap[A, B](f: A => B) = Functor[String => ?].fmap(f)
+  import Arbitrary.arbitrary
+  implicit def gen[C: Arbitrary, A]: Arbitrary[Const[C, A]] = Arbitrary(for (c <- arbitrary[C]) yield Const(c))
 
-    val arrow1 = fmap(f compose g)
-    val arrow2 = fmap(f) compose fmap(g)
-
-    arrow1(a)(s) == arrow2(a)(s)
-  }
+  proveFunctorLaws[Const[String, ?]]
 }
