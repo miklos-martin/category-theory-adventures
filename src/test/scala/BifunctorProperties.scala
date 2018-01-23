@@ -13,7 +13,7 @@ trait BifunctorLaws extends FunctorLaws { self: Properties =>
 
 object EitherAsBifunctor extends Properties("Bifunctor for Either") with BifunctorLaws {
   implicit val eitherInstance = new Bifunctor[Either] {
-    def bimap[A, T, B, U](f: A => T)(g: B => U): Either[A, B] => Either[T, U] = {
+    def bimap[A, T, B, U] = f => g => {
       case Left(a) => Left(f(a))
       case Right(b) => Right(g(b))
     }
@@ -24,7 +24,7 @@ object EitherAsBifunctor extends Properties("Bifunctor for Either") with Bifunct
 
 object TupleAsBifunctor extends Properties("Bifunctor for Tuple2") with BifunctorLaws {
   implicit val tupleInstance = new Bifunctor[Tuple2] {
-    def bimap[A, T, B, U](f: A => T)(g: B => U): ((A, B)) => (T, U) = {
+    def bimap[A, T, B, U] = f => g => {
       case (a, b) => (f(a), g(b))
     }
   }
