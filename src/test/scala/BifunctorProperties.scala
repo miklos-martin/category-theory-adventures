@@ -1,6 +1,6 @@
 package category
 
-import org.scalacheck.{Arbitrary, Properties}
+import org.scalacheck.{Arbitrary, Gen, Properties}
 import Arbitrary.arbitrary
 
 trait BifunctorLaws extends FunctorLaws { self: Properties =>
@@ -33,7 +33,7 @@ object TupleAsBifunctor extends Properties("Bifunctor for Tuple2") with Bifuncto
   proveBifunctorLaws[Tuple2]
 }
 
-object BiFunctorDefinedInTermsOfFirstAndSecond extends Properties("Bifunctor defined in terms of first and second") with BifunctorLaws {
+object BifunctorDefinedInTermsOfFirstAndSecond extends Properties("Bifunctor defined in terms of first and second") with BifunctorLaws {
   case class Foo[A, B](a: A, b: B)
   implicit val fooInstance = new Bifunctor[Foo] {
     override def first[A, B, C] = f => foo => foo.copy(a = f(foo.a))
@@ -47,4 +47,31 @@ object BiFunctorDefinedInTermsOfFirstAndSecond extends Properties("Bifunctor def
     } yield Foo(a, b))
 
   proveBifunctorLaws[Foo]
+}
+
+object ComposedBifunctor extends Properties("Compositional bifunctor") with BifunctorLaws {
+  case class BiComp[BF[_, _], F[_], G[_], A, B](x: BF[F[A], G[B]])
+
+  implicit def bicompInstance[BF[_, _]: Bifunctor, F[_]: Functor, G[_]: Functor] = new Bifunctor[BiComp[BF, F, G, ?, ?]] {
+    override def bimap[A, T, B, U] = f => g => {
+      case BiComp(x) => BiComp(Bifunctor[BF].bimap(Functor[F].fmap(f))(Functor[G].fmap(g))(x))
+    }
+  }
+
+  implicit val tupleInstance = new Bifunctor[Tuple2] {
+    override def bimap[A, T, B, U] = f => g => {
+      case (a, b) => (f(a), g(b))
+    }
+  }
+  implicit val optionFunctor = new Functor[Option] {
+    def fmap[A, B] = f => _.map(f)
+  }
+  implicit val listFunctor = new Functor[List] {
+    def fmap[A, B] = f => _.map(f)
+  }
+
+  implicit def genBiComp[A: Arbitrary, B: Arbitrary]: Arbitrary[BiComp[Tuple2, Option, List, A, B]] =
+    Arbitrary(for(x <- arbitrary[(Option[A], List[B])]) yield BiComp(x))
+
+  proveBifunctorLaws[BiComp[Tuple2, Option, List, ?, ?]]
 }
