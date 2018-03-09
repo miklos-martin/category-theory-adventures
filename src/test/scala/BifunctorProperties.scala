@@ -1,6 +1,6 @@
 package category
 
-import org.scalacheck.{Arbitrary, Gen, Properties}
+import org.scalacheck.{Arbitrary, Properties}
 import Arbitrary.arbitrary
 
 trait BifunctorLaws extends FunctorLaws { self: Properties =>
