@@ -49,7 +49,15 @@ object BifunctorDefinedInTermsOfFirstAndSecond extends Properties("Bifunctor def
   proveBifunctorLaws[Foo]
 }
 
-object ComposedBifunctor extends Properties("Compositional bifunctor") with BifunctorLaws {
+object BifunctorComposition extends Properties("Composition of two bifunctors") with BifunctorLaws {
+  import EitherAsBifunctor.eitherInstance
+  import TupleAsBifunctor.tupleInstance
+
+  proveBifunctorLaws[λ[(A, B) => Either[(A, B), (A, B)]]]
+  proveBifunctorLaws[λ[(A, B) => (Either[A, B], Either[A, B])]]
+}
+
+object BiCompExcercise extends Properties("BiComp") with BifunctorLaws {
   case class BiComp[BF[_, _], F[_], G[_], A, B](x: BF[F[A], G[B]])
 
   implicit def bicompInstance[BF[_, _]: Bifunctor, F[_]: Functor, G[_]: Functor] = new Bifunctor[BiComp[BF, F, G, ?, ?]] {
@@ -58,11 +66,7 @@ object ComposedBifunctor extends Properties("Compositional bifunctor") with Bifu
     }
   }
 
-  implicit val tupleInstance = new Bifunctor[Tuple2] {
-    override def bimap[A, T, B, U] = f => g => {
-      case (a, b) => (f(a), g(b))
-    }
-  }
+  import TupleAsBifunctor.tupleInstance
   implicit val optionFunctor = new Functor[Option] {
     def fmap[A, B] = f => _.map(f)
   }

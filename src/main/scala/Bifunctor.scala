@@ -21,4 +21,11 @@ object Bifunctor {
   implicit def functorOnRight[F[_, _] : Bifunctor, T] = new Functor[F[T, ?]] {
     def fmap[A, B] = Bifunctor[F].second
   }
+
+  implicit def compose[F[_, _]: Bifunctor, G[_, _]: Bifunctor] = new Bifunctor[λ[(A, B) => F[G[A, B], G[A, B]]]] {
+    override def bimap[A, T, B, U] = f => g => {
+      val inner = Bifunctor[G].bimap(f)(g)
+      Bifunctor[F].bimap(inner)(inner)
+    }
+  }
 }
