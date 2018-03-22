@@ -15,11 +15,13 @@ trait FunctorLaws extends ArrowProperties { self: Properties =>
 }
 
 object OptionFunctor extends Properties("Functor for Option") with FunctorLaws {
-  implicit val optionInstance = new Functor[Option] {
-    def fmap[A, B] = f => _.map(f)
-  }
-
+  import instances.option._
   proveFunctorLaws[Option]
+}
+
+object ListFunctor extends Properties("Functor for List") with FunctorLaws {
+  import instances.list._
+  proveFunctorLaws[List]
 }
 
 object ReaderExcercise extends Properties("Reader Functor") with FunctorLaws {
@@ -31,29 +33,9 @@ object ReaderExcercise extends Properties("Reader Functor") with FunctorLaws {
   proveFunctorLaws[String => ?]
 }
 
-object ConstExcercise extends Properties("Const functor") with FunctorLaws {
-  case class Const[C, B](c: C)
-
-  implicit def functor[C] = new Functor[Const[C, ?]] {
-    def fmap[A, B] = _ => {
-      case Const(c) => Const(c)
-    }
-  }
-
-  import Arbitrary.arbitrary
-  implicit def gen[C: Arbitrary, A]: Arbitrary[Const[C, A]] = Arbitrary(for (c <- arbitrary[C]) yield Const(c))
-
-  proveFunctorLaws[Const[String, ?]]
-}
-
 object FunctorComposition extends Properties("Functor composition") with FunctorLaws {
-  implicit val listF = new Functor[List] {
-    def fmap[A, B] = f => _.map(f)
-  }
-
-  implicit val optionF = new Functor[Option] {
-    def fmap[A, B] = f => _.map(f)
-  }
+  import instances.option._
+  import instances.list._
 
   proveFunctorLaws[λ[A => Option[List[A]]]]
   proveFunctorLaws[λ[A => List[Option[A]]]]
