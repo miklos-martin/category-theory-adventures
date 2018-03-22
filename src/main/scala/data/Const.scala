@@ -4,6 +4,8 @@ package data
 case class Const[C, A](c: C)
 
 object Const {
+  def unit[A]: Const[Unit, A] = Const(())
+
   implicit def functor[C] = new Functor[Const[C, ?]] {
     def fmap[A, B] = _ => {
       case Const(c) => Const(c)

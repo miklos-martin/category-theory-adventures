@@ -13,22 +13,13 @@ trait BifunctorLaws extends FunctorLaws { self: Properties =>
 }
 
 object EitherAsBifunctor extends Properties("Bifunctor for Either") with BifunctorLaws {
-  implicit val eitherInstance = new Bifunctor[Either] {
-    override def bimap[A, T, B, U] = f => g => {
-      case Left(a) => Left(f(a))
-      case Right(b) => Right(g(b))
-    }
-  }
+  import instances.either._
 
   proveBifunctorLaws[Either]
 }
 
 object TupleAsBifunctor extends Properties("Bifunctor for Tuple2") with BifunctorLaws {
-  implicit val tupleInstance = new Bifunctor[Tuple2] {
-    override def bimap[A, T, B, U] = f => g => {
-      case (a, b) => (f(a), g(b))
-    }
-  }
+  import instances.tuple2._
 
   proveBifunctorLaws[Tuple2]
 }
@@ -50,32 +41,9 @@ object BifunctorDefinedInTermsOfFirstAndSecond extends Properties("Bifunctor def
 }
 
 object BifunctorComposition extends Properties("Composition of two bifunctors") with BifunctorLaws {
-  import EitherAsBifunctor.eitherInstance
-  import TupleAsBifunctor.tupleInstance
+  import instances.tuple2._
+  import instances.either._
 
   proveBifunctorLaws[λ[(A, B) => Either[(A, B), (A, B)]]]
   proveBifunctorLaws[λ[(A, B) => (Either[A, B], Either[A, B])]]
-}
-
-object BiCompExcercise extends Properties("BiComp") with BifunctorLaws {
-  case class BiComp[BF[_, _], F[_], G[_], A, B](x: BF[F[A], G[B]])
-
-  implicit def bicompInstance[BF[_, _]: Bifunctor, F[_]: Functor, G[_]: Functor] = new Bifunctor[BiComp[BF, F, G, ?, ?]] {
-    override def bimap[A, T, B, U] = f => g => {
-      case BiComp(x) => BiComp(Bifunctor[BF].bimap(Functor[F].fmap(f))(Functor[G].fmap(g))(x))
-    }
-  }
-
-  import TupleAsBifunctor.tupleInstance
-  implicit val optionFunctor = new Functor[Option] {
-    def fmap[A, B] = f => _.map(f)
-  }
-  implicit val listFunctor = new Functor[List] {
-    def fmap[A, B] = f => _.map(f)
-  }
-
-  implicit def genBiComp[A: Arbitrary, B: Arbitrary]: Arbitrary[BiComp[Tuple2, Option, List, A, B]] =
-    Arbitrary(for(x <- arbitrary[(Option[A], List[B])]) yield BiComp(x))
-
-  proveBifunctorLaws[BiComp[Tuple2, Option, List, ?, ?]]
 }
